@@ -21,7 +21,19 @@ FROM nousresearch/hermes-agent:v2026.8.31
 # Das Startskript des Images sieht den Schalter ausdruecklich vor
 # (docker/stage2-hook.sh, Zeile 20):
 #     HERMES_HOME=${HERMES_HOME:-/opt/data}
-ENV HERMES_HOME=/data
+#
+# ⚠️ NICHT /data, sondern /data/.hermes. Die alte Fassung hatte /data als
+# HOME und legte ihre Daten wie ueblich in $HOME/.hermes ab. Zeigt HERMES_HOME
+# auf /data, sieht die neue Fassung diesen Unterordner nicht, faengt bei null
+# an und legt eine leere config.yaml daneben — das Dashboard meldet dann
+# "Gateway aus" und alle Einstellungen scheinen weg. Sie sind es nicht.
+#
+# Das Startskript richtet ausserdem die Besitzrechte von HERMES_HOME selbst
+# (stage2-hook.sh, chown_hermes_tree). Das ist noetig, weil die alte Fassung
+# als root lief und die neue als hermes (uid 10000) — sonst kann sie die
+# vorhandenen Dateien nicht lesen. HERMES_UID=0 waere kein Ausweg, das Image
+# laesst nur 1 bis 65534 zu.
+ENV HERMES_HOME=/data/.hermes
 
 # --- Was gestartet wird ----------------------------------------------------
 # OHNE diese Zeile startet das Image die interaktive Konsole, zeigt den
