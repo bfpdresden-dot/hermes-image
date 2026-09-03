@@ -1,29 +1,35 @@
-# Hermes Agent fuer hermes.bfp-dresden.de
+# Hermes Agent — festgehaltene Fassung fuer die eigene Instanz
 #
 # Diese Datei baut NICHTS. Sie haelt fest, welche Fassung des offiziellen
 # Images laeuft und wie sie starten soll.
 #
-# UPDATE: Zahl unten aendern, committen, in Coolify "Redeploy" druecken.
+# UPDATE: Zahl unten aendern, committen, im Betriebswerkzeug neu ausrollen.
 # Verfuegbare Fassungen: https://hub.docker.com/r/nousresearch/hermes-agent/tags
 #
-# KEIN "latest": Sonst wechselt die Fassung bei jedem Redeploy von selbst.
+# KEIN "latest": Sonst wechselt die Fassung bei jedem Ausrollen von selbst.
 #    Bei Problemen einfach die vorige Zahl eintragen und erneut ausrollen.
 
 FROM nousresearch/hermes-agent:v2026.8.31
 
 # --- Wo die Daten liegen ---------------------------------------------------
-# Ab v0.21 nimmt das Image /opt/data als Heimatverzeichnis. Die vorhandenen
-# Daten liegen aber unter /data/.hermes (Bind-Mount vom Host:
-# /data/coolify/applications/rw32cdrix8axo30pa1a8kkxo/hermes).
+# Ab v0.21 nimmt das Image /opt/data als Heimatverzeichnis. Wer von einer
+# aelteren Fassung kommt, hat seine Daten aber unter dem alten Pfad liegen —
+# dort, wo das Datenverzeichnis in den Container eingehaengt wird.
 #
-# ⚠️ NICHT /data, sondern /data/.hermes. Die alte Fassung hatte /data als HOME
-# und legte ihre Daten wie ueblich in $HOME/.hermes ab. Zeigt HERMES_HOME auf
-# den Elternordner, faengt Hermes bei null an und legt eine leere config.yaml
-# daneben — das Dashboard meldet dann "Gateway stopped" und alles wirkt weg.
+# Ohne diese Zeile faengt Hermes bei null an und legt eine leere config.yaml
+# daneben. Das Dashboard meldet dann "Gateway stopped" und alles wirkt
+# geloescht. Es ist nichts geloescht.
 #
-# Das Startskript richtet ausserdem die Besitzrechte selbst (stage2-hook.sh,
-# chown_hermes_tree): noetig, weil die alte Fassung als root lief und die neue
-# als hermes (uid 10000). HERMES_UID=0 waere kein Ausweg — nur 1 bis 65534.
+# ⚠️ Auf das Verzeichnis .hermes zeigen, nicht auf dessen Elternordner: Die
+# alte Fassung hatte den Elternordner als HOME und legte ihre Daten wie ueblich
+# in $HOME/.hermes ab.
+#
+# Das Startskript des Images sieht den Schalter ausdruecklich vor
+# (docker/stage2-hook.sh):  HERMES_HOME=${HERMES_HOME:-/opt/data}
+#
+# Es richtet ausserdem die Besitzrechte selbst (chown_hermes_tree) — noetig,
+# weil aeltere Fassungen als root liefen und die neue als Benutzer hermes
+# (uid 10000). HERMES_UID=0 ist KEIN Ausweg, das Image laesst nur 1 bis 65534 zu.
 ENV HERMES_HOME=/data/.hermes
 
 # --- Dashboard als DIENST, nicht als Hauptbefehl ----------------------------
@@ -34,9 +40,9 @@ ENV HERMES_HOME=/data/.hermes
 #     "A dashboard-only container never spawns or supervises per-profile
 #      gateways — that is the gateway container's job."
 #
-# Ergebnis war: Dashboard erreichbar, Gateway dauerhaft "stopped", und
-# `gateway start` antwortete "no such gateway 'default'", weil der s6-Dienst
-# gar nicht angelegt wurde.
+# Symptom sonst: Dashboard erreichbar, Gateway dauerhaft "stopped", und
+# `gateway start` antwortet "no such gateway 'default'", obwohl das Profil
+# existiert — der s6-Dienst wurde nie angelegt.
 #
 # Richtig ist: Das Image bringt einen eigenen Dashboard-Dienst mit, der ueber
 # diese Schalter eingeschaltet wird (/etc/s6-overlay/s6-rc.d/dashboard/run).
@@ -52,5 +58,5 @@ ENV HERMES_DASHBOARD_PORT=8080
 #
 # Ohne Hauptbefehl startet das Image die interaktive Konsole, beendet sie
 # mangels Terminal sofort wieder und startet endlos neu — dann lauscht kein
-# Port und die Domain antwortet mit 502.
+# Port und der Reverse-Proxy antwortet mit 502.
 CMD ["gateway", "run"]
