@@ -9,7 +9,7 @@
 # KEIN "latest": Sonst wechselt die Fassung bei jedem Ausrollen von selbst.
 #    Bei Problemen einfach die vorige Zahl eintragen und erneut ausrollen.
 
-FROM nousresearch/hermes-agent:v2026.8.31
+FROM nousresearch/hermes-agent:v2026.9.21
 
 # --- Wo die Daten liegen ---------------------------------------------------
 # Ab v0.21 nimmt das Image /opt/data als Heimatverzeichnis. Wer von einer
