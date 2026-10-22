@@ -5,11 +5,13 @@
 #
 # UPDATE: Zahl unten aendern, committen, im Betriebswerkzeug neu ausrollen.
 # Verfuegbare Fassungen: https://hub.docker.com/r/nousresearch/hermes-agent/tags
+# Seit Oktober 2026 normale Versionsnummern (v0.22.x) statt Datum (v2026.9.x).
+# Vorige Fassung: v2026.9.21 (= v0.21.4)
 #
 # KEIN "latest": Sonst wechselt die Fassung bei jedem Ausrollen von selbst.
 #    Bei Problemen einfach die vorige Zahl eintragen und erneut ausrollen.
 
-FROM nousresearch/hermes-agent:v2026.9.21
+FROM nousresearch/hermes-agent:v0.22.4
 
 # --- Wo die Daten liegen ---------------------------------------------------
 # Ab v0.21 nimmt das Image /opt/data als Heimatverzeichnis. Wer von einer
